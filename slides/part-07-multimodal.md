@@ -35,6 +35,17 @@ Sketches and screenshots convey:
 
 ---
 
+## Pasting Screenshots — Use **Ctrl+V**
+
+In Claude Code's terminal UI:
+
+- **Ctrl+V** → paste a screenshot from clipboard
+- ⚠️ On macOS, **Cmd+V pastes the file path**, not the image
+
+Workflow: capture → Ctrl+V → annotate intent in text.
+
+---
+
 ## The Visual-to-Code Prompt
 
 > *"Here is a wireframe of a dashboard. Build it as React + Tailwind. Infer spacing and hierarchy. List your assumptions before coding. Produce: components, routes, mock data, and a state diagram for empty/loading/error."*
@@ -75,6 +86,49 @@ If you'd want it next time → prompt it.
 - Not specifying the stack → random framework
 - Forgetting empty/error states
 - Pixel-perfect demands without enough source material
+
+---
+
+## Planning Mode — `Shift+Tab` ×2
+
+For broad changes, toggle **Planning Mode**:
+
+- Press **Shift+Tab twice** (once if already auto-accepting edits)
+- Claude reads more files, drafts a plan, **waits for approval**
+- You review and redirect *before* any code is written
+
+Best for: multi-file refactors, new features, codebase-wide changes.
+
+---
+
+## Thinking Modes
+
+Trigger more reasoning tokens by phrasing:
+
+| Phrase | Reasoning budget |
+|---|---|
+| `think` | basic |
+| `think more` | extended |
+| `think a lot` | comprehensive |
+| `think longer` | extended time |
+| `ultrathink` | maximum |
+
+Best for: hard logic, debugging, algorithm design.
+**Planning ≠ Thinking** — combine for breadth + depth (costs tokens).
+
+---
+
+## Steering the Conversation
+
+| Action | Shortcut / Cmd |
+|---|---|
+| Stop Claude mid-response | **Esc** |
+| Rewind to an earlier message | **Esc Esc** |
+| Add a memory while stopped | `#` |
+| Summarize history, keep insights | `/compact` |
+| Wipe history, fresh start | `/clear` |
+
+`/compact` after deep learning · `/clear` when switching tasks.
 
 ---
 

@@ -26,6 +26,36 @@ Without context, Claude Code:
 
 ---
 
+## Bootstrap with `/init`
+
+In a new project, run:
+
+```
+/init
+```
+
+Claude Code will:
+- Analyze the codebase (purpose, architecture, key files)
+- Detect commands, conventions, structure
+- Write a first-pass `CLAUDE.md` for you
+
+> Tip: press **Shift+Tab** to let Claude write files freely
+> instead of approving each one.
+
+---
+
+## The Three CLAUDE.md Locations
+
+| Path | Scope | Commit? |
+|---|---|---|
+| `./CLAUDE.md` | Project, shared with team | ✅ yes |
+| `./CLAUDE.local.md` | Project, **personal** overrides | ❌ no (gitignore) |
+| `~/.claude/CLAUDE.md` | All projects on your machine | n/a |
+
+Specific overrides general — local beats project, project beats global.
+
+---
+
 ## What Goes Inside CLAUDE.md
 
 - **Architecture notes** — what lives where
@@ -73,6 +103,42 @@ Python 3.11, stdlib only, pytest
 - Keep examples **short** but **canonical**
 
 Target: **< 200 lines** for most projects.
+
+---
+
+## Memory Mode — the `#` Shortcut
+
+Type `#` at the start of a message to enter **memory mode**:
+
+```
+# Use comments sparingly. Only comment complex code.
+```
+
+Claude will **merge** that instruction into the right `CLAUDE.md`
+(project, local, or global — your choice) automatically.
+
+Use it the moment you catch a repeated mistake.
+
+---
+
+## File Mentions with `@`
+
+Pull file contents into the request inline:
+
+```
+How does the auth system work? @src/auth
+```
+
+Claude resolves `@` to file paths and includes their contents.
+
+You can also pin files **inside** `CLAUDE.md`:
+
+```md
+The DB schema is in @prisma/schema.prisma — reference it
+whenever you need data structure.
+```
+
+→ Schema is auto-included on every prompt. No re-reading.
 
 ---
 

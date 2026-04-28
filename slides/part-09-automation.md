@@ -52,14 +52,224 @@ Stored once, invoked everywhere.
 
 ---
 
-## Hooks (Concept)
+## Custom Commands — File Layout
 
-Hooks = scripts triggered by Claude Code lifecycle events:
-- Before a session — load context
-- After a tool call — log or validate
-- Pre-commit — run lint/tests/audit
+Commands live as Markdown files in your project:
 
-Hooks make safety **automatic**, not optional.
+```
+.claude/
+└── commands/
+    ├── audit.md          → /audit
+    ├── review.md         → /review
+    └── write_tests.md    → /write_tests
+```
+
+Filename = command name. **Restart Claude Code** after adding one.
+
+---
+
+## Example: `/audit`
+
+```md
+Audit project dependencies:
+
+1. Run `npm audit` to list vulnerable packages
+2. Run `npm audit fix` to apply safe updates
+3. Run the test suite to verify nothing broke
+4. Summarize remaining risks
+```
+
+One file → repeatable, consistent multi-step workflow.
+
+---
+
+## Commands with Arguments — `$ARGUMENTS`
+
+```md
+Write comprehensive tests for: $ARGUMENTS
+
+Conventions:
+* Vitest + React Testing Library
+* Place tests in __tests__ next to source
+* Name files [filename].test.ts(x)
+* Use @/ import prefix
+
+Cover: happy path, edge cases, error states.
+```
+
+Invoke:
+
+```
+/write_tests src/hooks/use-auth.ts
+```
+
+---
+
+## Hooks — Lifecycle Events
+
+Hooks run **before** or **after** Claude uses a tool.
+
+| Hook | Fires | Can block? |
+|---|---|---|
+| `PreToolUse` | before a tool call | ✅ exit `2` |
+| `PostToolUse` | after a tool call | ❌ feedback only |
+| `Stop` | response finished | — |
+| `UserPromptSubmit` | on each user prompt | — |
+| `SessionStart` / `SessionEnd` | session lifecycle | — |
+| `PreCompact` | before `/compact` | — |
+
+Configured in `.claude/settings.json` (or `settings.local.json`).
+
+---
+
+## Hook Config — Example
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read|Grep",
+      "hooks": [{
+        "type": "command",
+        "command": "node $PWD/.claude/hooks/block-env.js"
+      }]
+    }]
+  }
+}
+```
+
+- `matcher` — tool name, regex-style (`|` = OR, `*` = any)
+- `command` — receives JSON on **stdin**, controls flow via exit code
+
+---
+
+## Hook Script — Block `.env` Reads
+
+```js
+const chunks = [];
+for await (const chunk of process.stdin) chunks.push(chunk);
+const { tool_input } = JSON.parse(Buffer.concat(chunks).toString());
+
+const path = tool_input?.file_path || tool_input?.path || "";
+if (path.includes(".env")) {
+  console.error("Blocked: .env is off-limits");
+  process.exit(2);   // 2 = block + send stderr to Claude
+}
+process.exit(0);     // 0 = allow
+```
+
+---
+
+## Sharing Hooks Safely — `$PWD`
+
+Hooks should use **absolute paths** (security best practice).
+But absolute paths break when shared across machines.
+
+**Pattern:**
+1. Commit `settings.example.json` with `$PWD` placeholders
+2. `npm run setup` runs an `init-claude.js` script
+3. The script substitutes `$PWD` → real absolute path
+4. Output: `.claude/settings.local.json` (gitignored)
+
+Result: shareable + secure.
+
+---
+
+## High-Value Hook Ideas
+
+| Hook | Effect |
+|---|---|
+| `PostToolUse` on `Edit\|Write` → run `tsc --noEmit` | Type errors fed back instantly |
+| `PostToolUse` on `Edit` in `./queries/` → SDK review | Detect duplicate DB queries |
+| `PreToolUse` on `Read\|Grep` → block secrets | Protect `.env`, keys |
+| `PostToolUse` on `Write` → run formatter | Auto-format every edit |
+| Catch-all `"matcher": "*"` → `jq . > log.json` | Inspect hook payloads |
+
+---
+
+## MCP Servers — Extending Claude's Tools
+
+MCP = **Model Context Protocol**. External tools Claude can call.
+
+Add the Playwright browser server (run **outside** Claude Code):
+
+```bash
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
+Pre-approve permissions in `.claude/settings.local.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__playwright"],
+    "deny": []
+  }
+}
+```
+
+Note the **double underscores** in `mcp__playwright`.
+
+---
+
+## MCP in Practice
+
+> "Open `localhost:3000`, generate a component, review the styling,
+> then update `@src/lib/prompts/generation.tsx` so future
+> components use warmer gradients and asymmetric layouts."
+
+Claude **sees the rendered UI** — not just the code — and improves
+its own prompts. Other servers: DBs, APIs, filesystem, cloud.
+
+---
+
+## GitHub Integration — `/install-github-app`
+
+Run inside Claude Code:
+
+```
+/install-github-app
+```
+
+Walks you through:
+1. Installing the Claude Code GitHub App
+2. Adding your API key as a secret
+3. Auto-generating a PR with workflow files in `.github/workflows/`
+
+Two default workflows ship with it.
+
+---
+
+## GitHub Workflows You Get
+
+**Mention action** — `@claude` in any issue or PR
+- Plans the task, executes with codebase access, replies inline
+
+**PR action** — runs on every pull request
+- Reviews changes, posts a detailed report
+
+Customize with `custom_instructions`, `mcp_config`, and
+`allowed_tools` (every tool **must** be explicitly listed).
+
+---
+
+## Claude Code SDK
+
+Run Claude Code **programmatically** (TS / Python / CLI):
+
+```ts
+import { query } from "@anthropic-ai/claude-code";
+
+for await (const m of query({
+  prompt: "Find duplicate queries in ./src/queries",
+  options: { allowedTools: ["Edit"] },
+})) {
+  console.log(m);
+}
+```
+
+Default permissions are **read-only**. Use it inside hooks,
+git hooks, CI, or one-Claude-reviews-another patterns.
 
 ---
 
@@ -71,18 +281,6 @@ A subagent = a focused, task-scoped helper:
 - **Doc subagent** — only writes docs
 
 Specialization → fewer mistakes, less context drift.
-
----
-
-## MCP-Style Extensions (Concept)
-
-MCP-style integrations let Claude reach:
-- Your issue tracker
-- Your CI logs
-- Your DB read replica
-- Your monitoring dashboards
-
-> Pattern: *"Claude as the orchestrator, tools as the hands."*
 
 ---
 
