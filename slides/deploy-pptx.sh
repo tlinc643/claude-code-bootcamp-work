@@ -65,17 +65,13 @@ if $CLEAN; then
   rm -rf "$DIST_DIR"
 fi
 
-mkdir -p "$DIST_DIR/pptx"
-$BUILD_PDF  && mkdir -p "$DIST_DIR/pdf"
-$BUILD_HTML && mkdir -p "$DIST_DIR/html"
+mkdir -p "$DIST_DIR"
 
 shopt -s nullglob
 
 # Discover decks. Intermediate decks live flat in slides/; beginner decks live
-# in slides/beginner/. List intermediate first (preserves existing build order),
-# then append beginner decks in lexical order so beginner build artifacts land
-# in dist/{pptx,pdf,html}/beginner/ subfolders and never collide with the
-# intermediate set even if slugs were to coincide one day.
+# in slides/beginner/. All decks build to a single flat output tree
+# (slides/dist/{pptx,pdf,html}/) — slugs do not collide between the two sets.
 INTERMEDIATE_DECKS=("$SLIDES_DIR"/part-*.md)
 BEGINNER_DECKS=()
 if [ -d "$SLIDES_DIR/beginner" ]; then
@@ -96,46 +92,48 @@ fi
 
 echo "Found ${#DECKS[@]} deck(s) (${#INTERMEDIATE_DECKS[@]} intermediate, ${#BEGINNER_DECKS[@]} beginner). Building ..."
 
-# Map a deck path to its output subdirectory ("" for intermediate, "beginner" for beginner).
-deck_subdir() {
-  case "$1" in
-    "$SLIDES_DIR"/beginner/*) echo "beginner" ;;
-    *) echo "" ;;
-  esac
-}
+# Optional custom Marp theme directory. If slides/themes/ exists and contains at
+# least one *.css file, pass --theme-set so decks can opt-in via front-matter
+# (e.g. `theme: wow-beginner`). Absent or empty themes/ → behaviour unchanged.
+THEME_DIR="$SLIDES_DIR/themes"
+THEME_ARGS=()
+if [ -d "$THEME_DIR" ] && compgen -G "$THEME_DIR/*.css" > /dev/null; then
+  THEME_ARGS=(--theme-set "$THEME_DIR")
+  echo "Custom themes: $THEME_DIR"
+fi
+
+out_pptx="$DIST_DIR/pptx"
+out_pdf="$DIST_DIR/pdf"
+out_html="$DIST_DIR/html"
+mkdir -p "$out_pptx"
+$BUILD_PDF  && mkdir -p "$out_pdf"
+$BUILD_HTML && mkdir -p "$out_html"
 
 for deck in "${DECKS[@]}"; do
   base="$(basename "${deck%.md}")"
-  sub="$(deck_subdir "$deck")"
-  out_pptx="$DIST_DIR/pptx${sub:+/$sub}"
-  out_pdf="$DIST_DIR/pdf${sub:+/$sub}"
-  out_html="$DIST_DIR/html${sub:+/$sub}"
-  mkdir -p "$out_pptx"
-  $BUILD_PDF  && mkdir -p "$out_pdf"
-  $BUILD_HTML && mkdir -p "$out_html"
 
   echo
-  echo "==> ${sub:+$sub/}$base"
+  echo "==> $base"
 
   echo "    -> PPTX"
-  "${MARP[@]}" --allow-local-files --pptx \
+  "${MARP[@]}" --allow-local-files "${THEME_ARGS[@]}" --pptx \
     -o "$out_pptx/${base}.pptx" "$deck"
 
   if $BUILD_PDF; then
     echo "    -> PDF"
-    "${MARP[@]}" --allow-local-files --pdf \
+    "${MARP[@]}" --allow-local-files "${THEME_ARGS[@]}" --pdf \
       -o "$out_pdf/${base}.pdf" "$deck"
   fi
 
   if $BUILD_HTML; then
     echo "    -> HTML"
-    "${MARP[@]}" --allow-local-files --html \
+    "${MARP[@]}" --allow-local-files "${THEME_ARGS[@]}" --html \
       -o "$out_html/${base}.html" "$deck"
   fi
 done
 
 echo
 echo "Done. Output:"
-echo "  PPTX:  $DIST_DIR/pptx/"
-$BUILD_PDF  && echo "  PDF:   $DIST_DIR/pdf/"
-$BUILD_HTML && echo "  HTML:  $DIST_DIR/html/"
+echo "  PPTX:  $out_pptx/"
+$BUILD_PDF  && echo "  PDF:   $out_pdf/"
+$BUILD_HTML && echo "  HTML:  $out_html/"
