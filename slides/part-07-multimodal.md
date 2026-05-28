@@ -56,6 +56,30 @@ In 30 minutes you will:
 
 <!-- _class: tpl-show -->
 
+## Feeding non-image files to the LLM — `markitdown`
+
+Multimodal isn't just screenshots. PDFs, DOCX, PPTX, XLSX, audio, video — Claude consumes them best as **Markdown**.
+
+[`microsoft/markitdown`](https://github.com/microsoft/markitdown) (Apache-2.0, Python ≥ 3.10) is the converter the AutoGen team ships for exactly this.
+
+```bash
+pip install 'markitdown[all]'
+markitdown report.pdf       > report.md         # PDF → MD
+markitdown slides.pptx      > slides.md         # PowerPoint → MD
+markitdown call.wav         > transcript.md     # audio transcription
+cat invoice.xlsx | markitdown > invoice.md      # pipe-friendly
+```
+
+**Supports**: PDF · Word · PowerPoint · Excel · images (OCR) · audio · HTML · CSV/JSON/XML · ZIP · YouTube URLs · EPub.
+
+**Why Markdown?** Tokens stay cheap; structure (headings, tables, links) survives; LLMs natively speak it.
+
+**Drop into the prompt**: `Attached is the converted Markdown of <file>. <Your question>.`
+
+---
+
+<!-- _class: tpl-show -->
+
 ## Live demo flow
 
 1. Instructor opens `exercises/part-07/wireframe-sketch.png` in Claude Code.

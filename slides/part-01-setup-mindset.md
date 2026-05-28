@@ -85,6 +85,31 @@ By the end of this 20-minute block you will:
 
 <!-- _class: tpl-show -->
 
+## Slash commands cheat sheet
+
+The most-used Claude Code slash commands. Type them at the prompt.
+
+| Command | What it does |
+|---|---|
+| `/help` | List every available slash command |
+| `/init` | Scaffold a `CLAUDE.md` for the current repo |
+| `/clear` | Reset the conversation (forget context) |
+| `/compact` | Compress history to save tokens (keeps summary) |
+| `/model` | Switch model mid-session (e.g., Sonnet ↔ Opus) |
+| `/cost` | Show token spend and session cost |
+| `/review` | Review the working-tree diff |
+| `/agents` · `/mcp` · `/hooks` | Manage subagents, MCP servers, hooks |
+| `/memory` | Open the memory editor (persistent notes) |
+| `/permissions` | Allow / deny tools per project |
+| `/doctor` | Diagnose env, auth, and integration issues |
+| `/exit` | Leave the session (Ctrl-D works too) |
+
+Forgot one? `/help` is always one keystroke away.
+
+---
+
+<!-- _class: tpl-show -->
+
 ## Live demo flow
 
 1. Instructor opens this repo in their IDE with Claude Code attached.
