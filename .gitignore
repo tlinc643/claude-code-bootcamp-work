@@ -39,3 +39,4 @@ venv/
 .env
 .env.*
 !.env.example
+assessments/answer-key.md
