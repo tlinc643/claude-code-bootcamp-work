@@ -177,6 +177,25 @@ Three components, weighted:
 
 If you score < 70%, you may re-take using the same answer key + rubric pair within 30 days.
 
+## What the spinner words mean ("Reticulating…", "Zesting…")
+
+While Claude Code is working, it shows a spinner next to a random, playful verb — for example:
+
+| Word you might see | What it actually means |
+|---|---|
+| Reticulating | Working — *no literal meaning* (a long-running in-joke from the game *SimCity*) |
+| Ruminating | Working — "thinking it over" |
+| Cooking | Working — "making progress" |
+| Precipitating | Working — playful for "bringing it about" |
+| Architecting | Working — playful for "designing" |
+| Accomplishing | Working — "getting it done" |
+| Propagating | Working — "spreading the change through" |
+| Choreographing | Working — "arranging the steps" |
+| Mustering | Working — "gathering" |
+| Zesting | Working — "adding flavour" |
+
+**They are purely cosmetic.** The word is chosen at random and tells you *nothing* about what Claude is really doing — it only signals "I'm busy, please wait." Watch the lines **below** the spinner (tool calls, file edits, `esc to interrupt`) for the real activity. Don't read meaning into the verb itself.
+
 ## Getting unstuck
 
 - **Lab won't finish in time.** Ship the Definition of Done; skip the Stretch challenge.

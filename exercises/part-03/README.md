@@ -19,9 +19,9 @@ In one sentence: **draft a `CLAUDE.md`, commit it to a real repo, then prove in 
 3. Create `module-03/` in your submission directory (this is where your two deliverables go).
 4. Open `skills/claude-md-template/SKILL.md` for the template and section guidance.
 
-## Step 1 — Draft CLAUDE.md with Claude
+## Claude Code prompt to use
 
-Run this prompt from the **root** of the repo you picked:
+This is **Step 1 — draft CLAUDE.md**. Run this prompt from the **root** of the repo you picked:
 
 ```text
 You are drafting CLAUDE.md for the repo at the current working directory.
@@ -37,14 +37,18 @@ Each line must change your behavior on a future prompt. If a line is just
 documentation, omit it. Keep the whole file under 80 lines.
 ```
 
-## Step 2 — Save and commit it
+## Manual validation steps
+
+Work through Steps 2–5 below, then run the final checks.
+
+### Step 2 — Save and commit it
 
 1. Save Claude's proposal as `CLAUDE.md` at the **repo root** (not inside `module-03/`).
 2. Read every line. Delete any line that is just documentation and would not change Claude's behaviour.
 3. Commit it to the repo: `git add CLAUDE.md && git commit -m "Add CLAUDE.md"`.
 4. Copy the committed file into your submission folder: `cp CLAUDE.md module-03/CLAUDE.md`.
 
-## Step 3 — Prove Claude obeys it
+### Step 3 — Prove Claude obeys it
 
 1. Open a **fresh** Claude Code chat in the same repo (so the new `CLAUDE.md` is loaded).
 2. Ask one prompt whose correct answer depends on a line in your `Conventions` section — for example, ask Claude to create a new file or function and watch whether it follows your naming rule.
@@ -54,7 +58,7 @@ documentation, omit it. Keep the whole file under 80 lines.
 > **Example prompt.** Notice it never mentions any convention — that is the point; you are testing whether `CLAUDE.md` silently steers the output:
 >
 > ```text
-> Create module-04/greet.py: a small CLI with a subcommand `hello <name>`
+> Create module-03/greet.py: a small CLI with a subcommand `hello <name>`
 > that prints "Hello, <name>!". Add a `--upper` flag that uppercases it.
 > ```
 >
@@ -63,12 +67,12 @@ documentation, omit it. Keep the whole file under 80 lines.
 > For the most unmistakable single-line proof, target one high-signal rule instead:
 >
 > ```text
-> Add a function to module-04/greet.py that logs the current time.
+> Add a function to module-03/greet.py that logs the current time.
 > ```
 >
 > Obeys → `datetime.now(timezone.utc).isoformat()` (ISO-8601 UTC). Ignored → `datetime.now()` (local, no tz) or `time.time()`. That one-line diff is the easiest thing to capture as `proof.png`.
 
-## Step 4 — Run the trim test
+### Step 4 — Run the trim test
 
 The *trim test* checks that every section actually earns its place:
 
@@ -77,7 +81,7 @@ The *trim test* checks that every section actually earns its place:
 3. Observe whether Claude's behaviour drifts (e.g., wrong naming, wrong commands).
 4. Restore the section. Be ready to **name one line you could delete and why** — that is part of the Definition of done.
 
-## Step 5 — Validate
+### Step 5 — Validate
 
 1. `wc -l CLAUDE.md` → ≤ 80.
 2. Confirm all five H1 sections are present: `Stack`, `Conventions`, `Commands`, `Do-not`, `Glossary`.
