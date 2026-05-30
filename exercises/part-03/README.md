@@ -51,6 +51,23 @@ documentation, omit it. Keep the whole file under 80 lines.
 3. Confirm Claude follows the convention **without you re-stating it**.
 4. Screenshot that obedient response and save it as `module-03/proof.png`.
 
+> **Example prompt.** Notice it never mentions any convention — that is the point; you are testing whether `CLAUDE.md` silently steers the output:
+>
+> ```text
+> Create module-04/greet.py: a small CLI with a subcommand `hello <name>`
+> that prints "Hello, <name>!". Add a `--upper` flag that uppercases it.
+> ```
+>
+> **Claude obeyed** if, without being asked, it: starts with `#!/usr/bin/env python3`, uses `argparse` subcommands, gives each function a one-line docstring, and exits `0`/`1` per your rules. **Claude ignored** the file if you see multi-line docstrings, hand-rolled `sys.argv` parsing, or no shebang (recheck you're in a fresh chat at repo root).
+>
+> For the most unmistakable single-line proof, target one high-signal rule instead:
+>
+> ```text
+> Add a function to module-04/greet.py that logs the current time.
+> ```
+>
+> Obeys → `datetime.now(timezone.utc).isoformat()` (ISO-8601 UTC). Ignored → `datetime.now()` (local, no tz) or `time.time()`. That one-line diff is the easiest thing to capture as `proof.png`.
+
 ## Step 4 — Run the trim test
 
 The *trim test* checks that every section actually earns its place:
