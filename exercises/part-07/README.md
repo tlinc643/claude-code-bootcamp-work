@@ -37,6 +37,13 @@ Constraints:
 - Render at 1280x720 should look unmistakably like the wireframe.
 ```
 
+> **"Below is a wireframe image" means you must actually attach it.** The model
+> only sees what you hand it — having `wireframe.png` sitting in the folder is not
+> enough. A real run with the file merely present (and only the `.svg` downloaded)
+> got: *"I don't see a wireframe image attached."* **Drag the PNG into the prompt**
+> (or paste it). And attach the **`.png`, not the `.svg`/`.mmd`** — the vector
+> sources are text, not a raster image, so Claude can't view them as a picture.
+
 ```text
 VISUAL DIFF
 Image 1: the wireframe.
@@ -84,7 +91,8 @@ Theme the dashboard (light + dark) using only plain CSS variables. Document the 
 
 | Symptom | Fix |
 |---|---|
-| Claude can't see the image | Confirm you attached it to the message. |
+| Claude can't see the image | Attach the PNG to the message itself (drag it in) — a file merely present in the folder is not seen. |
+| "I don't see a wireframe image attached" | You referenced the wireframe but didn't attach it, or attached the `.svg`/`.mmd`. Attach `wireframe.png` (or `wireframe-sketch.png`). |
 | Render uses Tailwind | Re-prompt with the "plain CSS" constraint reinforced. |
 | Layout is "close" but not right | Run the visual-diff loop; cap at 3 iterations. |
 | Streamlit sidebar collapses oddly | Use `st.sidebar` explicitly; layout is constrained — that's expected. |
