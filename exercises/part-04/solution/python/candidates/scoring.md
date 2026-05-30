@@ -1,10 +1,4 @@
-# scoring.md — worked example (reference)
-
-> This is a **filled-in example** of the `scoring.md` you create during the lab,
-> taken from a real run. The two candidates it scores ship next to it under
-> [`python/candidates/`](python/candidates/). Copy this shape into your own
-> `module-04/scoring.md` and replace the numbers with your results. Do not edit
-> this reference file.
+# scoring.md — Module 4 Best-of-N
 
 Two candidates generated from the identical prompt in two separate chats,
 then run through the same curl smoke test.

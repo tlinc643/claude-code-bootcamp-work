@@ -254,23 +254,25 @@ Two parallel tracks ship under this directory. Pick the one matching your stack 
 
 ### What a good `scoring.md` looks like
 
-The reference run produced **two candidates** from the same prompt in two separate chats: **Candidate A** kept everything in one `app.py`; **Candidate B** split the route layer out from persistence. Both passed the curl smoke test, so the rubric — not "it works" — decided the winner:
+The reference run produced **two candidates** from the same prompt in two separate chats. Both are shipped so you can read them:
 
-| Criterion (0–3) | Candidate A (single file) | Candidate B (split) |
+| | Candidate A | Candidate B |
 |---|---|---|
-| Correctness | 3 — all 7 curls pass | 3 — all 7 curls pass |
-| Simplicity  | 3 — ~12 lines shorter, one glance | 2 — three files to follow |
-| Fit         | 2 — 404 body is `{"detail":…}` | 3 — isolates persistence, returns bare `{"error":"not found"}` |
-| **Total**   | **8 / 9** | **8 / 9** |
+| Source | `python/candidates/candidate-a/notes_api.py` | `python/candidates/candidate-b/app.py` |
+| Shape | single-file, modern `lifespan`, partial `PATCH`, blank-title validator | split helpers, but uses `PUT` and skips validation |
 
-This is a deliberate tie (8–8) to show the **tie-breaker in action**. Two equally defensible calls:
+Running the **same** curl smoke test against both is what separated them — "it works" was not enough:
 
-- **Ship A** on the "simpler source wins" tie-breaker — fewer files to maintain on day one.
-- **Ship B** because its **Fit** edge (correct 404 shape, testable persistence layer) matters more for a service that will grow.
+| Criterion (0–3) | Candidate A | Candidate B |
+|---|---|---|
+| Correctness | 3 — all 6 codes match spec | 1 — `PATCH`→405 (implemented `PUT`); blank title→201 not 422 |
+| Simplicity  | 3 — one readable file | 2 — clean, but repeats row→Note mapping per route |
+| Fit         | 2 — 404 body is `{"detail":…}` | 1 — wrong update verb, no validation, deprecated `on_event` |
+| **Total**   | **8 / 9** | **4 / 9** |
 
-Either is acceptable *if your one-paragraph justification names the trade-off this concretely*. A vague "B looks cleaner" is not. If your `scoring.md` doesn't articulate the trade-off, refine the rationale before submitting.
+**Winner: A (8 vs 4)** — not a tie. B fails two spec requirements outright: the `PATCH` partial-update route and the 422 on a blank title. This is exactly the variance Best-of-N exists to catch: same prompt, but one run silently dropped a verb and all input validation. Keep B as evidence of the lift — do not delete it.
 
-A complete, filled-in model lives at `scoring.example.md` — copy its shape into your own `module-04/scoring.md`.
+The full worked write-up is at `python/candidates/scoring.md`; a copy-ready template is at `scoring.example.md`. Copy either shape into your own `module-04/scoring.md`.
 
 ### Verification run (what "PASS" looks like)
 

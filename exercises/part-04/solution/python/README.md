@@ -29,3 +29,12 @@ curl localhost:8000/notes/999                         # 404
 ```
 
 State persists in `notes.db` (SQLite).
+
+## Best-of-N worked run
+
+`app.py` above is the canonical reference. The [`candidates/`](candidates/) folder
+holds a real two-candidate Best-of-N run so you can see how scoring played out:
+
+- [`candidates/candidate-a/notes_api.py`](candidates/candidate-a/notes_api.py) — winner (8/9): partial `PATCH`, blank-title 422.
+- [`candidates/candidate-b/app.py`](candidates/candidate-b/app.py) — loser (4/9): uses `PUT`, skips validation.
+- [`candidates/scoring.md`](candidates/scoring.md) — the filled-in rubric and decision.
