@@ -2,7 +2,9 @@
 # scripts/validate.sh — structural validator for the bootcamp repo.
 #
 # Enforces:
-#   - Slide deck contract: 14 required H2 sections in order + Marp frontmatter + duration marker.
+#   - Slide deck contract: lean instructor-pacing shape (Theory -> Live demo -> Your turn -> Done)
+#     + Marp frontmatter + duration marker. Mirrors scripts/preflight.sh audit.slide-anatomy
+#     (specs/005-may-2026-bootcamp-refresh).
 #   - Per-deck duration marker matches canonical minute budget (240 total).
 #   - Exercise contract: 9 required H2 sections.
 #   - Skill contract: YAML frontmatter (name, description) + 6 H2 body sections.
@@ -40,20 +42,14 @@ declare -a DECK_SLUGS=(
 )
 declare -a DECK_MINS=(20 24 22 30 28 22 30 24 22 18)
 
+# Lean instructor-pacing shape (May 2026 refresh): every teaching deck flows
+# Theory -> Live demo -> Your turn -> Done. Headings carry a descriptive suffix
+# (e.g. "## Live demo · …"), so these are matched as H2 prefixes.
 DECK_SECTIONS=(
-  "Promise"
-  "Why this matters"
-  "Concepts"
-  "Live demo flow"
-  "Mini project"
-  "Step-by-step lab"
-  "Suggested Claude Code prompts"
-  "Deliverable checklist"
-  "Definition of done"
-  "Review checkpoint"
-  "Common mistakes"
-  "Instructor notes"
-  "Transition to next module"
+  "Theory"
+  "Live demo"
+  "Your turn"
+  "Done"
 )
 
 echo
@@ -86,13 +82,14 @@ while [[ $i -lt ${#DECK_SLUGS[@]} ]]; do
     TOTAL_MIN=$((TOTAL_MIN + expected))
   fi
 
-  # 14 sections (Title is the first H2; we check for the other 13 by name)
+  # Lean shape: at least the cover + the four pacing beats. Headings carry a
+  # descriptive suffix, so each core section is matched as an H2 prefix.
   H2_COUNT=$(grep -cE '^## ' "$f" || true)
-  if (( H2_COUNT < 14 )); then
-    fail "$f: expected ≥ 14 H2 sections, found $H2_COUNT"
+  if (( H2_COUNT < 6 )); then
+    fail "$f: expected ≥ 6 H2 sections, found $H2_COUNT"
   fi
   for sec in "${DECK_SECTIONS[@]}"; do
-    if ! grep -qF "## ${sec}" "$f"; then
+    if ! grep -qE "^## ${sec}\b" "$f"; then
       fail "$f: missing H2 section '${sec}'"
     fi
   done
