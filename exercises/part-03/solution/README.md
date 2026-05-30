@@ -70,6 +70,19 @@ A first-pass generated `CLAUDE.md` (especially from a faster/weaker model) usual
 
 > Teaching point: every line must *change behaviour on a future prompt*. The `Conventions` section here is the highest-value (exit codes, timestamp format, docstrings); `Glossary` is the weakest — a good candidate for the trim test's "name one line you could delete and why."
 
+## Worked proof of obedience
+
+[`greet.example.py`](greet.example.py) is a real response to the convention-free Step 3 prompt (*"Create greet.py: a CLI with a `hello <name>` subcommand … add a `--upper` flag"*). The prompt never named a single rule, yet the output obeys four `Conventions` lines from the `CLAUDE.md` above:
+
+| Convention | In `greet.example.py` |
+|---|---|
+| Shebang `#!/usr/bin/env python3` | line 1 |
+| One-line docstrings | `"""Greeting CLI."""` |
+| `argparse` with subcommands | `add_subparsers()` + `hello` |
+| Exit codes 0/1/2 | `raise SystemExit(1)` on no command; 0 on success |
+
+That silent obedience — four rules followed without restating them — is exactly what `proof.png` should capture (screenshot the prompt next to this output). Two honest nitpicks for the Review step: `main()` itself lacks a one-line docstring, and `argparse` exits `2` on a malformed flag (its built-in behaviour), slightly at odds with the "2 = internal error" rule.
+
 ## Definition of done
 
 - [ ] All five H1 sections present: `Stack`, `Conventions`, `Commands`, `Do-not`, `Glossary`.
