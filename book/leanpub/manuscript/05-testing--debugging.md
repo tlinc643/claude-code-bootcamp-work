@@ -110,6 +110,21 @@ Use httpx (or fetch) and a temp SQLite DB per test. No network. No mocks
 of HTTP — start the app in-process.
 ```
 
+> **Watch the diff — the #1 AI trap here.** "Start the app in-process" is
+> ambiguous, and models often **paste a *copy* of the API into the test file**
+> (look for a comment like `# app setup (copied from notes_api.py)` or an inline
+> `create_app()`). That suite is green but worthless: it tests a frozen copy, so
+> a real bug you fix in `notes_api.py` is never caught. Require the test to
+> **import the real module** (e.g. `import notes_api` / `from notes_api import app`)
+> and point it at a temp DB by patching the module's `DB_PATH`. If Claude copied
+> the code, re-prompt: *"import the app from notes_api.py — do not redefine the
+> routes in the test file."*
+>
+> Second trap: the 404 tests it writes usually assert only the **status code**,
+> never the **body shape** — so the `{"detail":{"error":"not found"}}` vs
+> `{"error":"not found"}` mismatch from Module 4 passes silently. Add at least one
+> `assert r.json() == {"error": "not found"}` so the suite actually pins the contract.
+
 ```text
 SELF-REVIEW
 You are reviewing a stranger's PR. The diff is below.
@@ -168,6 +183,9 @@ Add property-based tests using `hypothesis` (Python) or `fast-check` (Node) for 
 | Symptom | Fix |
 |---|---|
 | Tests pass even with bugs | Suite is too shallow — add boundary cases (empty body, q="", id=0). |
+| Tests stay green after you edit `notes_api.py` | The suite **copied** the app instead of importing it — re-prompt to `import notes_api` and patch `DB_PATH`. |
+| 404 tests pass but body shape is wrong | Suite only asserts the status code — add `assert r.json() == {"error":"not found"}`. |
+| `pip install` fails (`pyexpat`/dylib, Python 3.14) | Use `uv run --with pytest --with fastapi --with httpx pytest -q` — no global install needed. |
 | Self-review returns "looks good" | Frame it as a stranger's PR, not your own. |
 | Rubric reads like prose | Convert each item to a yes/no question. |
 | Confused which rubric is which | Student rubric = this folder. Instructor rubric = `assessments/rubric.md`. |
@@ -194,6 +212,38 @@ solution/
 | `tests/` | `python/tests/` or `node/tests/` | shape (≥6 tests, ≥3 happy, ≥2 error, ≥1 boundary), no SUT mocks |
 | Bug fixes | `BUGS.md` | did you find both planted bugs? did your fix touch the minimum surface? |
 | `code-review-rubric.md` | (you author this — there is no canonical version) | rubric has at least 6 items, each operational |
+
+### Review checklist — what a real Haiku run got wrong
+
+A live `GENERATE TESTS` run (Haiku, against the Module 4 `notes_api.py` winner)
+produced a 498-line, 30-test suite that ran green — and still had three defects a
+reviewer must catch. Use these as the "common AI deviations" for this module:
+
+1. **Copied the SUT into the test file instead of importing it.** The suite opened
+   with `# App setup (copied from notes_api.py)` and redefined `create_app()`,
+   schemas, and every route inline. Consequence: the tests exercise a *frozen copy*
+   — fix a bug in `notes_api.py` and the suite stays green, which defeats the whole
+   point. **Fix:** `import notes_api`, patch `notes_api.DB_PATH` to a temp file,
+   `TestClient(notes_api.app)`. (The reference fixture in `python/test_notes_api.py`
+   shows the import-and-patch pattern.)
+2. **404 tests assert only the status code, never the body.** `test_get_note_not_found_404`
+   checks `status_code == 404` but not the JSON — so the Module 4
+   `{"detail":{"error":"not found"}}` vs spec `{"error":"not found"}` mismatch is
+   invisible. **Fix:** add `assert r.json() == {"error": "not found"}` to pin the contract.
+3. **Imported but unused `unittest.mock.patch`** — despite the prompt saying "no mocks".
+   Dead import; remove it. Cheap tell that the model pattern-matched a template.
+
+A suite can be large, well-formatted, and fully green while testing the wrong thing.
+That is exactly the lesson of Module 5: green is necessary, not sufficient — read the diff.
+
+#### Environment note
+
+The reference run hit a broken system Python (3.14, `pyexpat` dylib mismatch), so
+`pip install` failed. `uv` was the working path — no global install needed:
+
+```bash
+uv run --with pytest --with fastapi --with httpx pytest -q
+```
 
 ### Code review rubric
 

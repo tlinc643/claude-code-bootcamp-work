@@ -26,6 +26,21 @@ Use httpx (or fetch) and a temp SQLite DB per test. No network. No mocks
 of HTTP — start the app in-process.
 ```
 
+> **Watch the diff — the #1 AI trap here.** "Start the app in-process" is
+> ambiguous, and models often **paste a *copy* of the API into the test file**
+> (look for a comment like `# app setup (copied from notes_api.py)` or an inline
+> `create_app()`). That suite is green but worthless: it tests a frozen copy, so
+> a real bug you fix in `notes_api.py` is never caught. Require the test to
+> **import the real module** (e.g. `import notes_api` / `from notes_api import app`)
+> and point it at a temp DB by patching the module's `DB_PATH`. If Claude copied
+> the code, re-prompt: *"import the app from notes_api.py — do not redefine the
+> routes in the test file."*
+>
+> Second trap: the 404 tests it writes usually assert only the **status code**,
+> never the **body shape** — so the `{"detail":{"error":"not found"}}` vs
+> `{"error":"not found"}` mismatch from Module 4 passes silently. Add at least one
+> `assert r.json() == {"error": "not found"}` so the suite actually pins the contract.
+
 ```text
 SELF-REVIEW
 You are reviewing a stranger's PR. The diff is below.
@@ -84,6 +99,9 @@ Add property-based tests using `hypothesis` (Python) or `fast-check` (Node) for 
 | Symptom | Fix |
 |---|---|
 | Tests pass even with bugs | Suite is too shallow — add boundary cases (empty body, q="", id=0). |
+| Tests stay green after you edit `notes_api.py` | The suite **copied** the app instead of importing it — re-prompt to `import notes_api` and patch `DB_PATH`. |
+| 404 tests pass but body shape is wrong | Suite only asserts the status code — add `assert r.json() == {"error":"not found"}`. |
+| `pip install` fails (`pyexpat`/dylib, Python 3.14) | Use `uv run --with pytest --with fastapi --with httpx pytest -q` — no global install needed. |
 | Self-review returns "looks good" | Frame it as a stranger's PR, not your own. |
 | Rubric reads like prose | Convert each item to a yes/no question. |
 | Confused which rubric is which | Student rubric = this folder. Instructor rubric = `assessments/rubric.md`. |
