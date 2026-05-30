@@ -73,6 +73,8 @@ Total: __ / 9
 Notes:
 ```
 
+> `scoring.md` is a file **you create** — it is not shipped in the repo. For a complete filled-in model, see [`solution/scoring.example.md`](solution/scoring.example.md).
+
 ## Manual validation steps
 
 ### Step 4a — Smoke-test each candidate

@@ -165,6 +165,8 @@ Total: __ / 9
 Notes:
 ```
 
+> `scoring.md` is a file **you create** — it is not shipped in the repo. For a complete filled-in model, see `solution/scoring.example.md`.
+
 ### Manual validation steps
 
 #### Step 4a — Smoke-test each candidate
@@ -267,6 +269,8 @@ This is a deliberate tie (8–8) to show the **tie-breaker in action**. Two equa
 - **Ship B** because its **Fit** edge (correct 404 shape, testable persistence layer) matters more for a service that will grow.
 
 Either is acceptable *if your one-paragraph justification names the trade-off this concretely*. A vague "B looks cleaner" is not. If your `scoring.md` doesn't articulate the trade-off, refine the rationale before submitting.
+
+A complete, filled-in model lives at `scoring.example.md` — copy its shape into your own `module-04/scoring.md`.
 
 ### Verification run (what "PASS" looks like)
 

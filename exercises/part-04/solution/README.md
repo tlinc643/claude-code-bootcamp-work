@@ -27,6 +27,8 @@ This is a deliberate tie (8–8) to show the **tie-breaker in action**. Two equa
 
 Either is acceptable *if your one-paragraph justification names the trade-off this concretely*. A vague "B looks cleaner" is not. If your `scoring.md` doesn't articulate the trade-off, refine the rationale before submitting.
 
+A complete, filled-in model lives at [`scoring.example.md`](scoring.example.md) — copy its shape into your own `module-04/scoring.md`.
+
 ## Verification run (what "PASS" looks like)
 
 A real verification of a winning FastAPI + sqlite3 candidate. Cold start, then every endpoint and edge case exercised:
