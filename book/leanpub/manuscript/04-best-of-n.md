@@ -94,19 +94,43 @@ Track A: Python (FastAPI + Pydantic v2). Track B: Node (Hono + Zod + better-sqli
 
 ### Goal
 
-Generate three independent candidate Notes APIs, score on the 3-criterion rubric, and ship the winner.
+Generate **two independent** candidate Notes APIs from the *same* prompt, score them side-by-side on the 3-criterion rubric, and ship the winner. Keep the loser — it is evidence of the lift.
 
 ### Scenario
 
-A small team needs a Notes service. You will use Best-of-N: produce 3 candidates, score, pick. The losers are evidence of the lift; keep them.
+A small team needs a Notes service. One Claude answer is just *one sample* from a noisy process — the second answer is often meaningfully better or worse. Best-of-N turns that variance into a better artefact: produce N candidates, score, pick. You will do **N = 2** here (the minimum that lets you compare); N = 3 is the real-world sweet spot.
 
 ### Starter instructions
 
-1. Pick a track:
-   - **Track A — Python**: FastAPI + Pydantic v2 + sqlite3 stdlib.
-   - **Track B — Node + TypeScript**: Hono + Zod + better-sqlite3.
-2. Create `module-04/` and three subfolders: `candidate-a/`, `candidate-b/`, `candidate-c/`.
-3. Open three **separate** Claude Code chats. Each chat = one candidate.
+Follow these steps in order. The whole point is that the two candidates are produced **independently** — they must never see each other.
+
+#### Step 1 — Pick a track and make the folders
+
+- **Track A — Python**: FastAPI + Pydantic v2 + sqlite3 stdlib.
+- **Track B — Node + TypeScript**: Hono + Zod + better-sqlite3.
+
+```bash
+mkdir -p module-04/candidate-a module-04/candidate-b module-04/winner
+```
+
+#### Step 2 — Produce Candidate A
+
+1. Open a **new** Claude Code chat (or run `claude` in a clean terminal).
+2. Paste the prompt from *"Claude Code prompt to use"* below **exactly** — do not edit it.
+3. Save whatever Claude generates into `module-04/candidate-a/`.
+4. **Do not** ask follow-up questions or iterate. One shot = one candidate.
+
+#### Step 3 — Produce Candidate B (independently)
+
+1. Open a **second, separate** chat — *not* the same one. (Closing and reopening, a new tab, or a different model such as Sonnet vs Opus all work.) This independence is what makes the comparison meaningful; reusing the same chat just gives you an *iteration*, not a second candidate.
+2. Paste the **identical** prompt.
+3. Save the output into `module-04/candidate-b/`.
+
+> Why independence matters: in the same chat, the model sees its earlier answer and tends to repeat it. Separate chats sample the model fresh, so A and B genuinely differ — which is the whole value of Best-of-N.
+
+#### Step 4 — Score and compare (see *Manual validation steps*)
+
+Run both candidates through the same curl smoke test, fill in `module-04/scoring.md`, then copy the winner into `module-04/winner/`.
 
 ### Claude Code prompt to use
 
@@ -130,10 +154,10 @@ EXAMPLES
 - GET /notes/999 → 404 {"error":"not found"}
 ```
 
-Then for each candidate, score using:
+Then score **each** candidate with this block (one per candidate) in `module-04/scoring.md`:
 
 ```text
-Candidate: [a|b|c]
+Candidate: [a|b]
 Correctness (0–3): can I exercise all five endpoints with curl?
 Simplicity   (0–3): is the source single-glance readable?
 Fit          (0–3): does it follow CLAUDE.md conventions?
@@ -143,7 +167,9 @@ Notes:
 
 ### Manual validation steps
 
-For each candidate, start the server and:
+#### Step 4a — Smoke-test each candidate
+
+For **each** candidate (`candidate-a`, then `candidate-b`), start its server and run the same script. Adjust the port to whatever that candidate chose.
 
 ```bash
 curl -X POST localhost:8000/notes -H 'content-type: application/json' \
@@ -157,7 +183,26 @@ curl -X DELETE localhost:8000/notes/1                 # 204
 curl localhost:8000/notes/999                         # 404
 ```
 
-Adjust port to whatever the candidate chose.
+#### Step 4b — Compare side-by-side
+
+Put both scores in one table so the winner is obvious. Example of a filled-in comparison:
+
+| Criterion (0–3) | Candidate A | Candidate B |
+|---|---|---|
+| Correctness | 3 — all 7 curls pass | 3 — all 7 curls pass |
+| Simplicity  | 3 — one readable file | 2 — split across 3 files |
+| Fit         | 2 — 404 body is `{"detail":…}` | 3 — returns bare `{"error":"not found"}` |
+| **Total**   | **8 / 9** | **8 / 9** |
+
+When totals tie, the **tie-breaker is the simpler source**. Write one paragraph in `scoring.md` saying *why* the winner won — "both correct, but B matched the spec's 404 shape" is exactly the kind of concrete reason to capture.
+
+#### Step 4c — Ship the winner
+
+```bash
+cp -R module-04/candidate-b/* module-04/winner/   # copy the winner (example: B won)
+```
+
+Leave the losing candidate folder in place — do **not** delete it.
 
 ### Expected deliverable
 
@@ -165,8 +210,7 @@ Adjust port to whatever the candidate chose.
 module-04/
 ├── candidate-a/
 ├── candidate-b/
-├── candidate-c/
-├── scoring.md       # rubric scores + one paragraph per candidate
+├── scoring.md       # rubric scores for A and B + the side-by-side table + one paragraph on why the winner won
 └── winner/          # exact copy of the winning candidate
 ```
 
@@ -174,29 +218,30 @@ A reference solution lives at `solution/` (Python and Node tracks) once the lab 
 
 ### Definition of done
 
-- [ ] All three candidates exist and were generated **independently** (separate chats).
-- [ ] `scoring.md` has rubric scores and per-candidate justification.
+- [ ] Both candidates exist and were generated **independently** (two separate chats).
+- [ ] `scoring.md` has rubric scores for A and B, the side-by-side table, and a one-paragraph justification.
 - [ ] `winner/` runs end-to-end against the curl commands above.
-- [ ] Losers archived, not deleted.
+- [ ] The losing candidate is archived, not deleted.
 
 ### Stretch challenge
 
-Pick the *second-place* candidate. In `module-04/runner-up-notes.md`, write the smallest patch that would have made it the winner.
+Add a **third** independent candidate (`candidate-c/`) — N = 3 is the real Best-of-N sweet spot. Re-score all three; note whether the third run beat your first two and by how much. That delta is the "lift" Best-of-N buys you.
 
 ### Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| All three candidates feel the same | Use *separate* chats — same chat = iteration, not BoN. |
-| Tied scores | Tie-breaker: simpler source wins. |
+| Both candidates feel identical | Use *separate* chats — same chat = iteration, not BoN. |
+| Tied total scores | Tie-breaker: simpler source wins. |
 | Track B: better-sqlite3 native build fails | Ensure Node 20 LTS, not 21+; on macOS `xcode-select --install`. |
 | Track A: Pydantic v1 imports | Re-prompt with "Pydantic v2" reinforced. |
+| `404` returns `{"detail":{"error":"not found"}}` not `{"error":"not found"}` | FastAPI wraps `detail`. A candidate that fixes this scores higher on **Fit** — see the solution's Review gotcha. |
 
 ## Solution — Module 04 {#solution--module-04}
 
 ## Reference solution — Module 4
 
-> **Stop**: only open this after you have produced your own `candidates.md` and chosen a winner.
+> **Stop**: only open this after you have produced your own two candidates, filled in `scoring.md`, and chosen a winner.
 
 Two parallel tracks ship under this directory. Pick the one matching your stack and diff your work against it:
 
@@ -205,17 +250,23 @@ Two parallel tracks ship under this directory. Pick the one matching your stack 
 | Python (FastAPI + SQLite) | `python/` | `pip install -r python/requirements.txt && uvicorn python.app:app --reload` |
 | Node.js (Hono + better-sqlite3) | `node/` | `cd node && npm i && npm start` |
 
-### What to compare in `candidates.md`
+### What a good `scoring.md` looks like
 
-The reference run produced **two candidates**: one with the route layer split out and one with everything in `app.py`. The winner (the split version) was picked against the 3-criterion rubric:
+The reference run produced **two candidates** from the same prompt in two separate chats: **Candidate A** kept everything in one `app.py`; **Candidate B** split the route layer out from persistence. Both passed the curl smoke test, so the rubric — not "it works" — decided the winner:
 
-| Criterion | Weight | Why split version won |
+| Criterion (0–3) | Candidate A (single file) | Candidate B (split) |
 |---|---|---|
-| Correctness | 0.4 | Both pass the smoke script; tied. |
-| Maintainability | 0.4 | Split version isolates persistence from routing → easier tests. |
-| Speed-to-ship | 0.2 | Single-file version was 12 lines shorter; minor win. |
+| Correctness | 3 — all 7 curls pass | 3 — all 7 curls pass |
+| Simplicity  | 3 — ~12 lines shorter, one glance | 2 — three files to follow |
+| Fit         | 2 — 404 body is `{"detail":…}` | 3 — isolates persistence, returns bare `{"error":"not found"}` |
+| **Total**   | **8 / 9** | **8 / 9** |
 
-If your `candidates.md` doesn't articulate the trade-off this concretely, refine the rationale before submitting.
+This is a deliberate tie (8–8) to show the **tie-breaker in action**. Two equally defensible calls:
+
+- **Ship A** on the "simpler source wins" tie-breaker — fewer files to maintain on day one.
+- **Ship B** because its **Fit** edge (correct 404 shape, testable persistence layer) matters more for a service that will grow.
+
+Either is acceptable *if your one-paragraph justification names the trade-off this concretely*. A vague "B looks cleaner" is not. If your `scoring.md` doesn't articulate the trade-off, refine the rationale before submitting.
 
 ### Verification run (what "PASS" looks like)
 
@@ -259,4 +310,4 @@ uv run --with fastapi --with uvicorn uvicorn notes_api:app --port 8765
 
 ### Definition of done
 
-See `../README.md`. Note: at least **two distinct candidates** are required — variants of the same approach don't count.
+See `../README.md`. Note: at least **two distinct candidates** are required — variants of the same approach don't count, and they must come from **two separate chats**, not follow-up turns in one.

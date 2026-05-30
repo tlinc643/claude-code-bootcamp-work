@@ -1,6 +1,6 @@
 # Reference solution — Module 4
 
-> **Stop**: only open this after you have produced your own `candidates.md` and chosen a winner.
+> **Stop**: only open this after you have produced your own two candidates, filled in `scoring.md`, and chosen a winner.
 
 Two parallel tracks ship under this directory. Pick the one matching your stack and diff your work against it:
 
@@ -9,17 +9,23 @@ Two parallel tracks ship under this directory. Pick the one matching your stack 
 | Python (FastAPI + SQLite) | [`python/`](python/) | `pip install -r python/requirements.txt && uvicorn python.app:app --reload` |
 | Node.js (Hono + better-sqlite3) | [`node/`](node/) | `cd node && npm i && npm start` |
 
-## What to compare in `candidates.md`
+## What a good `scoring.md` looks like
 
-The reference run produced **two candidates**: one with the route layer split out and one with everything in `app.py`. The winner (the split version) was picked against the 3-criterion rubric:
+The reference run produced **two candidates** from the same prompt in two separate chats: **Candidate A** kept everything in one `app.py`; **Candidate B** split the route layer out from persistence. Both passed the curl smoke test, so the rubric — not "it works" — decided the winner:
 
-| Criterion | Weight | Why split version won |
+| Criterion (0–3) | Candidate A (single file) | Candidate B (split) |
 |---|---|---|
-| Correctness | 0.4 | Both pass the smoke script; tied. |
-| Maintainability | 0.4 | Split version isolates persistence from routing → easier tests. |
-| Speed-to-ship | 0.2 | Single-file version was 12 lines shorter; minor win. |
+| Correctness | 3 — all 7 curls pass | 3 — all 7 curls pass |
+| Simplicity  | 3 — ~12 lines shorter, one glance | 2 — three files to follow |
+| Fit         | 2 — 404 body is `{"detail":…}` | 3 — isolates persistence, returns bare `{"error":"not found"}` |
+| **Total**   | **8 / 9** | **8 / 9** |
 
-If your `candidates.md` doesn't articulate the trade-off this concretely, refine the rationale before submitting.
+This is a deliberate tie (8–8) to show the **tie-breaker in action**. Two equally defensible calls:
+
+- **Ship A** on the "simpler source wins" tie-breaker — fewer files to maintain on day one.
+- **Ship B** because its **Fit** edge (correct 404 shape, testable persistence layer) matters more for a service that will grow.
+
+Either is acceptable *if your one-paragraph justification names the trade-off this concretely*. A vague "B looks cleaner" is not. If your `scoring.md` doesn't articulate the trade-off, refine the rationale before submitting.
 
 ## Verification run (what "PASS" looks like)
 
@@ -63,4 +69,4 @@ uv run --with fastapi --with uvicorn uvicorn notes_api:app --port 8765
 
 ## Definition of done
 
-See `../README.md`. Note: at least **two distinct candidates** are required — variants of the same approach don't count.
+See `../README.md`. Note: at least **two distinct candidates** are required — variants of the same approach don't count, and they must come from **two separate chats**, not follow-up turns in one.
