@@ -44,3 +44,5 @@ venv/
 .env.*
 !.env.example
 assessments/answer-key.md
+.DS_Store
+**/.DS_Store
