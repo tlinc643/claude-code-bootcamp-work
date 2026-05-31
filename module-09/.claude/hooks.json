@@ -1,0 +1,18 @@
+{
+  "_comment": "DEMO ONLY — learning exercise for module-09. Not a real global hook.",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -q \"git commit\"; then cd module-09 && python -m pytest tests/ -q --tb=no 2>&1; STATUS=$?; if [ $STATUS -ne 0 ]; then echo \"HOOK BLOCKED: pytest failed (exit $STATUS). Fix tests before committing.\"; exit 2; fi; fi'",
+            "_what_it_does": "Intercepts any Bash call that contains 'git commit'. Runs pytest in module-09/tests/. If pytest exits non-zero, the hook prints a message and returns exit code 2, which causes Claude Code to block the tool call and show the error to the user."
+          }
+        ]
+      }
+    ]
+  }
+}
